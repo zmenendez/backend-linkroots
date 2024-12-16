@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import User from "../models/User";
-import { hashPassword } from "../utils/auth";
+import { checkPassword, hashPassword } from "../utils/auth";
 import slug from "slug";
 
 
@@ -26,4 +26,23 @@ export const createAccount = async (req: Request, res: Response) => {
 
     await user.save()
     res.status(201).send('Registro Creado Correctamente')
+}
+
+export const login = async (req: Request, res: Response) => {
+
+    const { email, password } = req.body
+
+    // Revisar si el usuario esta registrado
+    const user = await User.findOne({ email })
+    if (!user) {
+        const error = new Error('El Usuario no existe')
+        return res.status(404).json({ error: error.message })
+    }
+
+    // Comprobar el password
+    const isPasswordCorrect = await checkPassword(password, user.password)
+    if (!isPasswordCorrect) {
+        const error = new Error('Password Incorrecto')
+        return res.status(401).json({ error: error.message })
+    }
 }
