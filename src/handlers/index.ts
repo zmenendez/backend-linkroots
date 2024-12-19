@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import User from "../models/User";
 import { checkPassword, hashPassword } from "../utils/auth";
 import slug from "slug";
+import { generateToken } from "../utils/jwt";
 
 
 
@@ -16,7 +17,7 @@ export const createAccount = async (req: Request, res: Response) => {
     const handle = slug(req.body.handle, '')
     const handleExists = await User.findOne({ handle })
     if (handleExists) {
-        const error = new Error('Nombre de usuario no disponible')
+        const error = new Error('Nombre de handle no disponible')
         return res.status(409).json({ error: error.message })
     }
 
@@ -45,4 +46,6 @@ export const login = async (req: Request, res: Response) => {
         const error = new Error('Password Incorrecto')
         return res.status(401).json({ error: error.message })
     }
+    const token = generateToken({ id: user._id })
+    res.status(200).send(token)
 }
